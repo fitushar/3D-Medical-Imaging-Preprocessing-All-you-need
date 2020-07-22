@@ -128,9 +128,7 @@ def resample_img(itk_image, out_spacing=[2.0, 2.0, 2.0], is_label=False):
         resample.SetInterpolator(sitk.sitkBSpline)
 
     return resample.Execute(itk_image)
-
-
-```ruby
+```
 ![Resampling](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/Resampled.PNG)
 
 
@@ -174,7 +172,5 @@ def resize_image_with_crop_or_pad(image, img_size=(64, 64, 64), **kwargs):
 
     # Pad the cropped image to extend the missing dimension
     return np.pad(image[slicer], to_padding, **kwargs)
-
-
-```ruby
+```
 ![Cropandpad](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/Crop_or_padding.PNG)
