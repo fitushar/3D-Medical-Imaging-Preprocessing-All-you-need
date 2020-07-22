@@ -1,5 +1,5 @@
 # 3D-Medical-Imaging-Preprocessing-All-you-need
-This Repo Will contain the Preprocessing Code for 3D Medical Imaging
+This Repo contains the Preprocessing Code for 3D Medical Imaging
 
 From the last year of my undergrade studies I was very queries about Biomedical Imaging. But until the starting my master I don't have the chance to go deep into the medical imaging. Like most people at the begining I also suffered and was bit confussed about few thing. In this note-book I will try to easily explain/show commonly used Preprocessing in Medical Imaging specially with 3D Nifti.
 
