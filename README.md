@@ -38,7 +38,7 @@ In this Notebook we will cover
 * skimage
 * cv2
 ```  
-### **Reading Nifti Data and ploting**
+## **Reading Nifti Data and ploting**
 ```ruby
 ct_path='D:/Science/Github/3D-Medical-Imaging-Preprocessing-All-you-need/Data/img0001.nii.gz'
 ct_label_path='D:/Science/Github/3D-Medical-Imaging-Preprocessing-All-you-need/Data/label0001.nii.gz'
@@ -52,7 +52,7 @@ mask      = sitk.GetArrayFromImage(mask_sitk)#Converting sitk_metadata to image 
 ```  
 ![ct_mask](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/CT.PNG)
 
-### Intensity Normalization
+## Intensity Normalization
 ```ruby
 def normalise(image):
     # normalise and clip images -1000 to 800
@@ -100,3 +100,81 @@ def normalise_one_one(image):
     return ret
 ``` 
 ![Normalization](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/IntensityNormalization.PNG)
+
+## Resampling 
+```ruby
+def resample_img(itk_image, out_spacing=[2.0, 2.0, 2.0], is_label=False):
+    # resample images to 2mm spacing with simple itk
+
+    original_spacing = itk_image.GetSpacing()
+    original_size = itk_image.GetSize()
+
+    out_size = [
+        int(np.round(original_size[0] * (original_spacing[0] / out_spacing[0]))),
+        int(np.round(original_size[1] * (original_spacing[1] / out_spacing[1]))),
+        int(np.round(original_size[2] * (original_spacing[2] / out_spacing[2])))]
+
+    resample = sitk.ResampleImageFilter()
+    resample.SetOutputSpacing(out_spacing)
+    resample.SetSize(out_size)
+    resample.SetOutputDirection(itk_image.GetDirection())
+    resample.SetOutputOrigin(itk_image.GetOrigin())
+    resample.SetTransform(sitk.Transform())
+    resample.SetDefaultPixelValue(itk_image.GetPixelIDValue())
+
+    if is_label:
+        resample.SetInterpolator(sitk.sitkNearestNeighbor)
+    else:
+        resample.SetInterpolator(sitk.sitkBSpline)
+
+    return resample.Execute(itk_image)
+
+
+```ruby
+![Resampling](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/Resampled.PNG)
+
+
+## Crop or Padding 
+```ruby
+def resize_image_with_crop_or_pad(image, img_size=(64, 64, 64), **kwargs):
+    """Image resizing. Resizes image by cropping or padding dimension
+     to fit specified size.
+    Args:
+        image (np.ndarray): image to be resized
+        img_size (list or tuple): new image size
+        kwargs (): additional arguments to be passed to np.pad
+    Returns:
+        np.ndarray: resized image
+    """
+
+    assert isinstance(image, (np.ndarray, np.generic))
+    assert (image.ndim - 1 == len(img_size) or image.ndim == len(img_size)), \
+        'Example size doesnt fit image size'
+
+    # Get the image dimensionality
+    rank = len(img_size)
+
+    # Create placeholders for the new shape
+    from_indices = [[0, image.shape[dim]] for dim in range(rank)]
+    to_padding = [[0, 0] for dim in range(rank)]
+
+    slicer = [slice(None)] * rank
+
+    # For each dimensions find whether it is supposed to be cropped or padded
+    for i in range(rank):
+        if image.shape[i] < img_size[i]:
+            to_padding[i][0] = (img_size[i] - image.shape[i]) // 2
+            to_padding[i][1] = img_size[i] - image.shape[i] - to_padding[i][0]
+        else:
+            from_indices[i][0] = int(np.floor((image.shape[i] - img_size[i]) / 2.))
+            from_indices[i][1] = from_indices[i][0] + img_size[i]
+
+        # Create slicer object to crop or leave each dimension
+        slicer[i] = slice(from_indices[i][0], from_indices[i][1])
+
+    # Pad the cropped image to extend the missing dimension
+    return np.pad(image[slicer], to_padding, **kwargs)
+
+
+```ruby
+![Cropandpad](https://github.com/fitushar/3D-Medical-Imaging-Preprocessing-All-you-need/blob/master/figure/Crop_or_padding.PNG)
